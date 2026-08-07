@@ -4,3 +4,8 @@ config/secret.env.local
 *.env
 # tapi contohnya (tanpa rahasia) tetap di-commit
 !config/secret.env.example
+# artefak runtime - bukan kode, jangan di-commit
+__pycache__/
+*.pyc
+logs/
+employees/reiko/latest.json
