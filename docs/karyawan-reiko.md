@@ -23,7 +23,13 @@ run.py (pengumpul tren)  →  latest.json  →  head.py / Hermes cron (penyusun)
 - SELF posting / beli follower.
 - "Berpikir sendiri" — keputusan besar tetap di persetujuan.
 
-## Sumber yang dipakai
-Google Trends (RSS) · Hacker News (Algolia) · (Reddit ditangguhkan: IP cloud diblokir 403).
+## Dua niche TERPISAH
+
+Reiko melacak 2 niche yang TIDAK dicampur:
+1. **AI** (`niche="ai"`) — model, tools, tren AI.
+2. **Budaya Jepang** (`niche="japan"`) — anime, manga, tren Jepang (romaji + kanji).
+
+Hasil riset disimpan di `latest.json` sebagai `niches = {"ai": [..5], "japan": [..5]}`.
+Klasifikasi pakai word-boundary utk "ai" (biar "raiders"/"taiwan" tak menyesatkan) + keyword japan romaji & kanji. Tiap niche dikirim sebagai pesan TERPISAH ke tujuan.
 
 Lihat juga: [[PRD-reiko]] · [[catatan-sistem]] · [[index]]

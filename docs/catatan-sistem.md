@@ -14,6 +14,16 @@ Semua keputusan & perubahan teknis dicatat di sini, terbaru di atas.
   - Reddit (.json) → **diblokir 403** (Reddit blokir IP cloud). Ditangguhkan.
 - **employees/reiko/head.py**: penyusun laporan (latihan OK).
 
+## 2026-08-07 — Refactor: 2 niche TERPISAH (koreksi user)
+
+- User mau 2 niche berdiri sendiri: **AI** dan **Budaya Jepang**, bukan digabung "AI x Jepang".
+- **run.py**: klasifikasi kembalikan ke 2 bucket terpisah (`niches={"ai":[], "japan":[]}`), top 5 masing.
+  - Word-boundary utk "ai" (`\bai\b`) — fix bug "raiders"/"taiwan" yang salah match substring "ai".
+  - Keyword Jepang ditambah form kanji/kana (Google Trends JP isinya kanji: 富士, 日本, アニメ...).
+  - Keyword AI ditambah istilah model real (qwen, gemini, claude, inference, nvidia, gpu, agent...).
+- **head.py**: kirim SATU laporan terpisah per niche (2 pemanggilan send.report).
+- **cron**: prompt diperbarui → buat 2 pesan terpisah, mode `kirim` (fallback Telegram).
+
 ## 2026-08-07 — Blocker: Discord menolak IP cloud
 
 - Discord menjawab **error 1010** ("blocked by cloud") pada webhook.

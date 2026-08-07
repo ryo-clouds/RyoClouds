@@ -26,12 +26,32 @@ from core import log  # noqa: E402
 
 UA = {"User-Agent": "Mozilla/5.0 (compatible; Reiko/1.0)"}
 
+# "ai" harus word-boundary (jangan match substring: "raiders", "taiwan", "said")
 AI_KEYWORDS = ["ai", "artificial", "chatgpt", "gpt", "llm", "machine learning",
                "stable diffusion", "midjourney", "openai", "deepseek",
-               "copilot", "ai art", "prompt", "robot", "neural"]
+               "copilot", "ai art", "prompt", "robot", "neural",
+               # model & istilah tech yang sering tren di HN/tech
+               "qwen", "gemini", "claude", "sora", "llama", "agent",
+               "inference", "nvidia", "gpu", "ml", "deeplearning", "model",
+               "algorithm", "dataset", "transformer", "open source model"]
+# Keyword Jepang: romaji + kanji/kana umum (Google Trends JP isinya kanji)
 JAPAN_KEYWORDS = ["japan", "tokyo", "anime", "manga", "sushi", "kyoto", "osaka",
                   "japanese", "nihongo", "j-pop", "cosplay", "shinkansen",
-                  "studio ghibli", "kawaii", "hololive"]
+                  "studio ghibli", "kawaii", "hololive",
+                  "fujifilm", "sumo", "kabuki", "jleague", "j-league",
+                  "日本", "東京", "アニメ", "漫画", "富士", "大阪", "京都",
+                  "桜", "初音ミク", "ポケモン", "任天堂"]
+
+
+def _has_ai(t: str) -> bool:
+    """AI match: word-boundary utk 'ai', substring utk istilah lain."""
+    if re.search(r"\bai\b", t):
+        return True
+    return any(k in t for k in AI_KEYWORDS if k != "ai")
+
+
+def _has_japan(t: str) -> bool:
+    return any(k in t for k in JAPAN_KEYWORDS)
 
 
 def fetch(url: str, timeout: int = 12) -> str:
@@ -70,13 +90,26 @@ def hackernews_top(limit: int = 8) -> list:
     return out
 
 
-def score(title: str) -> int:
+def classify(title: str) -> str:
+    """Klasifikasi niche terpisah: 'ai', 'japan', atau '' (luar niches)."""
+    t = title.lower()
+    if _has_ai(t):
+        return "ai"
+    if _has_japan(t):
+        return "japan"
+    return ""
+
+
+def base_score(title: str) -> int:
+    """Skor kontekstual (bobot kata kunci), bukan cross-niche."""
     t = title.lower()
     s = 0
-    if any(k in t for k in AI_KEYWORDS):
-        s += 2
-    if any(k in t for k in JAPAN_KEYWORDS):
-        s += 3  # fokus niche AI x Jepang
+    if _has_ai(t):
+        s += 1 + sum(t.count(k) for k in AI_KEYWORDS)
+        if re.search(r"\bai\b", t):
+            s += 1
+    if _has_japan(t):
+        s += 1 + sum(t.count(k) for k in JAPAN_KEYWORDS)
     return s
 
 
@@ -84,36 +117,39 @@ def main() -> None:
     raw: list = []
     for geo in ("US", "JP"):
         raw += google_trends(geo)
-    raw += hackernews_top()  # Reddit diblokir 403 -> HN sebagai sumber tren tech
+    raw += hackernews_top()  # Reddit diblokir 403 -> HN sumber tren tech
 
-    # dedup
-    seen = {}
+    # dedup + klasifikasi 2 niche terpisah
+    items = {}
     for t in raw:
         ts = t.strip()
         if not ts:
             continue
-        key = ts.lower()
-        if key in seen:
-            seen[key]["score"] = max(seen[key]["score"], score(ts))
-        else:
-            seen[key] = {"title": ts, "score": score(ts)}
+        niche = classify(ts)
+        if not niche:
+            continue
+        key = niche + "|" + ts.lower()
+        items[key] = {"title": ts, "niche": niche, "score": base_score(ts)}
 
-    scored = list(seen.values())
-    scored.sort(key=lambda x: x["score"], reverse=True)
-    relevant = [s for s in scored if s["score"] > 0][:10]
-    if not relevant:
-        relevant = scored[:5]
+    # pisahkan ke 2 bucket, ambil top 5 masing-masing (urut skor)
+    by_niche = {"ai": [], "japan": []}
+    for it in items.values():
+        by_niche[it["niche"]].append(it)
+    for n in by_niche:
+        by_niche[n].sort(key=lambda x: x["score"], reverse=True)
+        by_niche[n] = by_niche[n][:5]
 
     bundle = {
         "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "regions": ["US", "JP"],
-        "trends": relevant,
-        "total_raw": len(scored),
+        "niches": by_niche,          # {'ai':[...5], 'japan':[...5]}
+        "counts": {"ai": len(by_niche["ai"]), "japan": len(by_niche["japan"])},
+        "total_raw": len(raw),
     }
     path = ROOT / "employees" / "reiko" / "latest.json"
     path.parent.mkdir(exist_ok=True)
     path.write_text(json.dumps(bundle, ensure_ascii=False, indent=2), encoding="utf-8")
-    log.write("reiko", "research", trend_count=len(relevant), raw_count=len(scored))
+    log.write("reiko", "research", ai=len(by_niche["ai"]), japan=len(by_niche["japan"]))
     print(json.dumps(bundle, ensure_ascii=False))
 
 
