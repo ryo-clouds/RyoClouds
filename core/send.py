@@ -124,6 +124,64 @@ def _send_telegram(text: str) -> bool:
     return False
 
 
+def _send_telegram_photo(photo_path: str, caption: str = "") -> bool:
+    """Kirim GAMBAR + caption ke Telegram via sendPhoto (multipart).
+    Return True kalau sukses."""
+    token = settings.telegram_bot_token()
+    chat = settings.telegram_chat_id()
+    if not token or not chat:
+        print("ERROR: TELEGRAM_BOT_TOKEN/CHAT_ID kosong.")
+        return False
+    url = f"https://api.telegram.org/bot{token}/sendPhoto"
+    # multipart/form-data manual (hindari dependency requests)
+    boundary = "----ReikoBoundary" + str(int(time.time() * 1000))
+    fields = {"chat_id": chat, "caption": caption or ""}
+    # baca file
+    with open(photo_path, "rb") as f:
+        file_bytes = f.read()
+    body = bytearray()
+    for k, v in fields.items():
+        body += f"--{boundary}\r\nContent-Disposition: form-data; name=\"{k}\"\r\n\r\n{v}\r\n".encode()
+    body += (f"--{boundary}\r\nContent-Disposition: form-data; name=\"photo\"; "
+             f"filename=\"image.png\"\r\nContent-Type: image/png\r\n\r\n").encode()
+    body += file_bytes
+    body += f"\r\n--{boundary}--\r\n".encode()
+    req = urllib.request.Request(
+        url, data=bytes(body),
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"}, method="POST")
+    last_err = None
+    for attempt in (1, 2, 3):
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                data = json.loads(resp.read().decode())
+                return bool(data.get("ok"))
+        except (urllib.error.URLError, TimeoutError, OSError) as e:
+            last_err = e
+            time.sleep(2 * attempt)
+    print(f"ERROR kirim foto Telegram gagal: {last_err}")
+    return False
+
+
+def send_image(actor: str, photo_path: str, caption: str = "", mode: str = "latihan") -> bool:
+    """Kirim gambar + caption ke tujuan. mode 'latihan' tampil saja (path).
+    Telegram sekarang; kalau nanti Discord didukung, tambah di sini.
+    Return True kalau sukses / display latihan."""
+    if mode == "kirim":
+        ok = _send_telegram_photo(photo_path, caption)
+        log.write(actor, "send_image", mode="kirim", channel="telegram", ok=ok,
+                  path=photo_path, caption=caption[:50])
+        return ok
+    # latihan
+    print("=" * 60)
+    print(f"LATIHAN - kirim GAMBAR (belum ke Telegram): {photo_path}")
+    if caption:
+        print(f"CAPTION: {caption}")
+    print("=" * 60)
+    log.write(actor, "send_image", mode="latihan", channel="telegram", ok=True,
+              path=photo_path)
+    return True
+
+
 def report(actor: str, title: str, sections: list, mode: str = "latihan",
            source: str = "") -> bool:
     """Kirim/tampilkan laporan. Return True kalau sukses (atau sukses display)."""

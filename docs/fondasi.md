@@ -11,11 +11,26 @@ memanggil webhook langsung dari tempat lain.
 from core import send
 send.report(actor="reiko", title="...", sections=[{"heading":"...", "body":"..."}],
             mode="latihan" | "kirim")
+send.send_image(actor="comak", photo_path="...", caption="...", mode="kirim")  # gambar
 ```
 
 - **mode="latihan"** — tampilkan laporan ke terminal/log. TIDAK kirim.
-- **mode="kirim"** — kirim beneran ke Discord via webhook.
+- **mode="kirim"** — kirim beneran via webhook/Telegram.
+- `send_image()` — kirim FOTO + caption ke Telegram (sendPhoto, multipart).
 - Ada retry 3x + backoff. Gagal? dicatat di log.
+
+## core/imagegen.py — Pembuat Gambar
+
+Satu titik untuk membuat gambar (seperti send.py utk pesan).
+
+```python
+from core import imagegen
+path = imagegen.generate_image("prompt ...", actor="comak", tag="ai")
+```
+
+- Provider: **Pollinations.ai** (gratis, tanpa daftar, HTTP GET).
+- Simpan PNG ke `assets/`, return path absolut. Retry 3x + backoff.
+- Gagal total → return None + catat log.
 
 ## core/log.py — Pencatat
 

@@ -14,6 +14,17 @@ Semua keputusan & perubahan teknis dicatat di sini, terbaru di atas.
   - Reddit (.json) → **diblokir 403** (Reddit blokir IP cloud). Ditangguhkan.
 - **employees/reiko/head.py**: penyusun laporan (latihan OK).
 
+## 2026-08-07 — Karyawan #2: Comak (pembuat konten visual)
+
+- **core/imagegen.py** — pembuat gambar via Pollinations.ai (gratis, tanpa daftar).
+  Teruji jalan dari mesin (HTTP 200, gambar anime/sci-fi koheren). Simpan PNG ke assets/.
+- **employees/comak/run.py** — otak: baca riset Reiko → prompt → generate → kirim.
+- **core/send.py** + `send_image()` — kirim FOTO + caption ke Telegram via
+  sendPhoto (multipart manual, tanpa requests). Teruji live (ok:true).
+- **Cron Comak** (`4a22b39d9d24`, tiap 2 jam) — self-contained: jalankan run.py
+  Reiko dulu tiap siklus biar data fresh. Terverifikasi end-to-end: agen generate
+  gambar BARU + kirim ke Telegram ok:true.
+
 ## 2026-08-07 — Refactor: 2 niche TERPISAH (koreksi user)
 
 - User mau 2 niche berdiri sendiri: **AI** dan **Budaya Jepang**, bukan digabung "AI x Jepang".
