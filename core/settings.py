@@ -33,6 +33,14 @@ def discord_webhook() -> str:
     return get_secret("DISCORD_WEBHOOK_URL").strip()
 
 
+def telegram_bot_token() -> str:
+    return get_secret("TELEGRAM_BOT_TOKEN").strip()
+
+
+def telegram_chat_id() -> str:
+    return get_secret("TELEGRAM_CHAT_ID").strip()
+
+
 if __name__ == "__main__":
     # bukti kecil: webhook terisi atau kosong (JANGAN print isinya)
     wh = discord_webhook()

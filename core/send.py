@@ -99,14 +99,49 @@ def _send_discord(payload: dict) -> bool:
     return False
 
 
+def _send_telegram(text: str) -> bool:
+    """Kirim teks ke Telegram via Bot API. Return True kalau sukses."""
+    token = settings.telegram_bot_token()
+    chat = settings.telegram_chat_id()
+    if not token or not chat:
+        print("ERROR: TELEGRAM_BOT_TOKEN/CHAT_ID kosong. Isi config/secret.env")
+        return False
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = json.dumps({"chat_id": chat, "text": text,
+                          "parse_mode": "Markdown", "disable_web_page_preview": True}).encode()
+    req = urllib.request.Request(url, data=payload,
+                                 headers={"Content-Type": "application/json"}, method="POST")
+    last_err = None
+    for attempt in (1, 2, 3):
+        try:
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                data = json.loads(resp.read().decode())
+                return bool(data.get("ok"))
+        except (urllib.error.URLError, TimeoutError, OSError) as e:
+            last_err = e
+            time.sleep(2 * attempt)
+    print(f"ERROR Telegram gagal setelah 3x: {last_err}")
+    return False
+
+
 def report(actor: str, title: str, sections: list, mode: str = "latihan",
            source: str = "") -> bool:
     """Kirim/tampilkan laporan. Return True kalau sukses (atau sukses display)."""
     payload = _build_message(title, sections, source)
     if mode == "kirim":
-        ok = _send_discord(payload)
-        log.write(actor, "send", mode="kirim", ok=ok, title=title[:80])
-        return ok
+        if _send_discord(payload):
+            log.write(actor, "send", mode="kirim", channel="discord", ok=True, title=title[:80])
+            return True
+        # Discord gagal (mis. IP cloud diblokir 1010) -> fallback ke Telegram
+        print("Discord gagal, coba kirim via Telegram...")
+        text = f"*{title}*\n\n" + "\n\n".join(
+            f"**{s.get('heading','')}**\n{s.get('body','')}" for s in sections if s.get('body')
+        )
+        if _send_telegram(text):
+            log.write(actor, "send", mode="kirim", channel="telegram", ok=True, title=title[:80])
+            return True
+        log.write(actor, "send", mode="kirim", channel="discord+telegram", ok=False, title=title[:80])
+        return False
     # default = latihan
     _display(title, sections, source)
     log.write(actor, "send", mode="latihan", ok=True, title=title[:80])
