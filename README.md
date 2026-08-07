@@ -26,5 +26,8 @@ Karyawan baru = salin pola dari `employees/reiko/`.
 
 ## Status saat ini
 
-Sedang membangun **karyawan #1: Reiko** (research konten AI x Jepang).
-Lihat [[plans/PRD-reiko]] untuk rencana lengkap.
+**Novel Publishing Department** (AKTIF) — perusahaan penerbitan novel 24/7,
+20 role dengan SOP + pipeline. Lihat `novel_pub/README.md`.
+
+Sebelumnya: karyawan #1 (Reiko) & #2 (Comak) = konten sosial, kini **pensiun**
+(dihentikan, arsip). Fokus sekarang novel romance.

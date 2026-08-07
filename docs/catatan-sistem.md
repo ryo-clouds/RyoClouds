@@ -14,6 +14,16 @@ Semua keputusan & perubahan teknis dicatat di sini, terbaru di atas.
   - Reddit (.json) → **diblokir 403** (Reddit blokir IP cloud). Ditangguhkan.
 - **employees/reiko/head.py**: penyusun laporan (latihan OK).
 
+## 2026-08-07 — Novel Publishing Department (pivot besar)
+
+- **Pensiun:** Reiko & Comak (konten sosial) — cron dihapus, arsip di docs.
+- **Baru:** `novel_pub/` — dept penerbitan novel 24/7, 20 role + SOP + pipeline.
+  - Teams: research, creative, production, publishing, growth, admin.
+  - Tiap role: `sops/SOP-<role>.md` + folder `output/`.
+  - Engine: `novel_pub/engine.py` (urutan pipeline 18 stage).
+- **Niche:** Romance — Forbidden Love in Medieval Era · Pen name: *Ashen Vale*.
+- **Bahasa buku:** English · Output: PDF per bab → Telegram.
+
 ## 2026-08-07 — Karyawan #2: Comak (pembuat konten visual)
 
 - **core/imagegen.py** — pembuat gambar via Pollinations.ai (gratis, tanpa daftar).
