@@ -26,7 +26,10 @@ Semua keputusan & perubahan teknis dicatat di sini, terbaru di atas.
 
 ## Next (kepala)
 
-- Bangun Hermes cron tiap 2 jam → baca latest.json → susun konten → kirim
-  (mode latihan dulu) → setelah Discord jalan, ganti ke `kirim`.
+- **Hermes cron AKTIF** — job "Reiko - riset & kirim konten (2 jam)"
+  (`08f9cb3eb6be`), tiap 120 menit, mode **latihan**. Pipeline end-to-end
+  terverifikasi: run.py → latest.json → susun konten → send.report(latihan) OK.
+- **Tinggal:** pindahkan ke mesin NON-AWS (rumah/VPS residensial) biar Discord
+  terima (error 1010 hilang), lalu ubah cron ke mode `kirim`.
 
 Lihat juga: [[index]] · [[fondasi]] · [[karyawan-reiko]]
