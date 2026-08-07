@@ -1,0 +1,6 @@
+# Rahasia - jangan pernah di-commit
+config/secret.env
+config/secret.env.local
+*.env
+# tapi contohnya (tanpa rahasia) tetap di-commit
+!config/secret.env.example
